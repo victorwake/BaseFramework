@@ -4,6 +4,7 @@ import com.example.base_framework.dto.AuthResponse;
 import com.example.base_framework.dto.LoginRequest;
 import com.example.base_framework.entity.User;
 import com.example.base_framework.repository.UserRepository;
+import com.example.base_framework.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,6 +15,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     public AuthResponse login(LoginRequest request) {
 
@@ -26,7 +28,7 @@ public class AuthService {
         }
 
         // por ahora devolvemos token dummy
-        String token = "JWT_TOKEN_PENDING";
+        String token = jwtService.generateToken(user.getEmail());
 
         return new AuthResponse(token);
     }
