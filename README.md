@@ -26,4 +26,3 @@ Este proyecto sirve como punto de partida para cualquier aplicación que requier
 - JPA / Hibernate
 - MySQL
 
-## 📁 Estructura
