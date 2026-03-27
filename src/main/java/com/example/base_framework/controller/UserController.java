@@ -5,6 +5,8 @@ import com.example.base_framework.entity.User;
 import com.example.base_framework.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.util.List;
 
@@ -15,6 +17,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @PreAuthorize("hasAuthority('USER_READ')")
     @GetMapping
     public List<User> getUsers() {
         return userService.findAllUsers();
