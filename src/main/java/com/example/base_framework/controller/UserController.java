@@ -3,6 +3,7 @@ package com.example.base_framework.controller;
 import com.example.base_framework.dto.CreateUserRequest;
 import com.example.base_framework.entity.User;
 import com.example.base_framework.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @Operation(summary = "Obtener todos los usuarios")
     @PreAuthorize("hasAuthority('USER_READ')")
     @GetMapping
     public List<User> getUsers() {
