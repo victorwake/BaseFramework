@@ -4,6 +4,7 @@ import com.example.base_framework.dto.CreateUserRequest;
 import com.example.base_framework.entity.User;
 import com.example.base_framework.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -40,7 +41,10 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('USER_DELETE')")
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+
         userService.deleteUser(id);
+
+        return ResponseEntity.noContent().build(); // 204
     }
 }
