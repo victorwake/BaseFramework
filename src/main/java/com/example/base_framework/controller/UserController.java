@@ -23,9 +23,24 @@ public class UserController {
         return userService.findAllUsers();
     }
 
+    @PreAuthorize("hasAuthority('USER_CREATE')")
     @PostMapping
     public User createUser(@RequestBody CreateUserRequest request) {
         return userService.createUser(request);
     }
 
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PutMapping("/{id}/roles")
+    public void updateUserRoles(
+            @PathVariable Long id,
+            @RequestBody List<String> roles
+    ) {
+        userService.updateUserRoles(id, roles);
+    }
+
+    @PreAuthorize("hasAuthority('USER_DELETE')")
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+    }
 }

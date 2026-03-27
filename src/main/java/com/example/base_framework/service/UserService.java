@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.List;
 
@@ -38,6 +39,22 @@ public class UserService {
                 .build();
 
         return userRepository.save(user);
+    }
+
+    public void updateUserRoles(Long userId, List<String> roleNames) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<Role> roles = roleRepository.findByNameIn(roleNames);
+
+        user.setRoles(new HashSet<>(roles));
+
+        userRepository.save(user);
+    }
+
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
     }
 
 }
