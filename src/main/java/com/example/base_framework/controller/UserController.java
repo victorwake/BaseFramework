@@ -1,14 +1,15 @@
 package com.example.base_framework.controller;
 
 import com.example.base_framework.dto.CreateUserRequest;
+import com.example.base_framework.dto.UpdateUserRolesRequest;
 import com.example.base_framework.entity.User;
 import com.example.base_framework.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
-
 
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class UserController {
 
     @PreAuthorize("hasAuthority('USER_CREATE')")
     @PostMapping
-    public User createUser(@RequestBody CreateUserRequest request) {
+    public User createUser(@Valid @RequestBody CreateUserRequest request) {
         return userService.createUser(request);
     }
 
@@ -36,9 +37,9 @@ public class UserController {
     @PutMapping("/{id}/roles")
     public void updateUserRoles(
             @PathVariable Long id,
-            @RequestBody List<String> roles
+            @Valid @RequestBody UpdateUserRolesRequest request
     ) {
-        userService.updateUserRoles(id, roles);
+        userService.updateUserRoles(id, request.getRoles());
     }
 
     @PreAuthorize("hasAuthority('USER_DELETE')")
@@ -47,6 +48,6 @@ public class UserController {
 
         userService.deleteUser(id);
 
-        return ResponseEntity.noContent().build(); // 204
+        return ResponseEntity.noContent().build();
     }
 }

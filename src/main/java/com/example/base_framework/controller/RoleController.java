@@ -3,6 +3,7 @@ package com.example.base_framework.controller;
 import com.example.base_framework.entity.Role;
 import com.example.base_framework.service.RoleService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,7 @@ public class RoleController {
 
     @PreAuthorize("hasAuthority('ROLE_CREATE')")
     @PostMapping
-    public Role createRole(@RequestBody Role role) {
+    public Role createRole(@Valid @RequestBody Role role) {
         return roleService.save(role);
     }
 

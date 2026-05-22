@@ -2,6 +2,7 @@ package com.example.base_framework.controller;
 
 import com.example.base_framework.entity.Permission;
 import com.example.base_framework.service.PermissionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class PermissionController {
 
     @PreAuthorize("hasAuthority('ROLE_CREATE')")
     @PostMapping
-    public Permission createPermission(@RequestBody Permission request) {
+    public Permission createPermission(@Valid @RequestBody Permission request) {
         return permissionService.createPermission(request);
     }
 

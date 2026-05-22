@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/base_framework_db
+    username: root
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: mySuperSecretKeyForJwtAuthenticationThatIsVeryLongAndSecure123456789
+  expiration: 86400000
+
+cors:
+  allowed-origins: http://localhost:3000,http://localhost:5173
+
+server:
+  port: 8080
