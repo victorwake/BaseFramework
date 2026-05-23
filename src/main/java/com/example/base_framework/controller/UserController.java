@@ -1,12 +1,17 @@
 package com.example.base_framework.controller;
 
 import com.example.base_framework.dto.CreateUserRequest;
+import com.example.base_framework.dto.UpdateUserModulesRequest;
+import com.example.base_framework.dto.UpdateUserRequest;
 import com.example.base_framework.dto.UpdateUserRolesRequest;
 import com.example.base_framework.entity.User;
 import com.example.base_framework.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,19 +25,41 @@ public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "Obtener todos los usuarios")
+    @Operation(summary = "Obtener todos los usuarios (con paginación y búsqueda)")
     @PreAuthorize("hasAuthority('USER_READ')")
     @GetMapping
-    public List<User> getUsers() {
-        return userService.findAllUsers();
+    public Page<User> getUsers(
+            @RequestParam(required = false) String search,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        return userService.findAllUsersPaged(search, pageable);
     }
 
+    @Operation(summary = "Obtener usuario por ID")
+    @PreAuthorize("hasAuthority('USER_READ')")
+    @GetMapping("/{id}")
+    public User getUserById(@PathVariable Long id) {
+        return userService.findUserById(id);
+    }
+
+    @Operation(summary = "Crear un nuevo usuario")
     @PreAuthorize("hasAuthority('USER_CREATE')")
     @PostMapping
     public User createUser(@Valid @RequestBody CreateUserRequest request) {
         return userService.createUser(request);
     }
 
+    @Operation(summary = "Actualizar nombre y email de un usuario")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PutMapping("/{id}")
+    public User updateUser(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateUserRequest request
+    ) {
+        return userService.updateUser(id, request);
+    }
+
+    @Operation(summary = "Actualizar roles de un usuario")
     @PreAuthorize("hasAuthority('USER_UPDATE')")
     @PutMapping("/{id}/roles")
     public void updateUserRoles(
@@ -42,12 +69,21 @@ public class UserController {
         userService.updateUserRoles(id, request.getRoles());
     }
 
+    @Operation(summary = "Actualizar módulos de un usuario")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
+    @PutMapping("/{id}/modules")
+    public void updateUserModules(
+            @PathVariable Long id,
+            @Valid @RequestBody UpdateUserModulesRequest request
+    ) {
+        userService.updateUserModules(id, request.getModuleIds());
+    }
+
+    @Operation(summary = "Eliminar un usuario")
     @PreAuthorize("hasAuthority('USER_DELETE')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-
         userService.deleteUser(id);
-
         return ResponseEntity.noContent().build();
     }
 }

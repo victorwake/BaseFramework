@@ -6,6 +6,8 @@ import com.example.base_framework.repository.RoleRepository;
 import com.example.base_framework.repository.PermissionRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,13 @@ public class RoleService {
 
     public List<Role> findAll() {
         return roleRepository.findAll();
+    }
+
+    public Page<Role> findAllPaged(String search, Pageable pageable) {
+        if (search == null || search.isBlank()) {
+            return roleRepository.findAll(pageable);
+        }
+        return roleRepository.findByNameContainingIgnoreCase(search, pageable);
     }
 
     public Role save(Role role) {
