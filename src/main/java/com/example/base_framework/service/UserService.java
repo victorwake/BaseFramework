@@ -43,6 +43,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    public User findUserById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
@@ -109,10 +115,4 @@ public class UserService {
 
         userRepository.deleteById(id);
     }
-
-    public User findByEmail(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-    }
-
 }

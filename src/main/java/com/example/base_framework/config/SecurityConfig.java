@@ -2,6 +2,7 @@ package com.example.base_framework.config;
 
 import com.example.base_framework.security.JwtAuthenticationEntryPoint;
 import com.example.base_framework.security.JwtAuthenticationFilter;
+import com.example.base_framework.security.RateLimitingFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -56,12 +57,17 @@ public class SecurityConfig {
                                 "/auth/**",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/error"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
 
+                .addFilterBefore(
+                        new RateLimitingFilter(),
+                        UsernamePasswordAuthenticationFilter.class
+                )
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class

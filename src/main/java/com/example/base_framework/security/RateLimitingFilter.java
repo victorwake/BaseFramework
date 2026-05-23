@@ -4,17 +4,13 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Component
-@Order(1)
 public class RateLimitingFilter extends OncePerRequestFilter {
 
     private final ConcurrentHashMap<String, RateLimitEntry> attempts = new ConcurrentHashMap<>();
@@ -39,12 +35,19 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
         synchronized (entry) {
             if (entry.isBlocked()) {
+                long retryAfterSeconds = Math.max(0, (entry.windowStart + WINDOW_MS - System.currentTimeMillis()) / 1000);
+
                 response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
                 response.setContentType("application/json");
-                response.getWriter().write("{\"error\":\"Demasiados intentos, espere 1 minuto\"}");
+                response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
+                response.getWriter().write(
+                        "{\"error\":\"Demasiados intentos. Has superado el límite de " + MAX_ATTEMPTS +
+                                " intentos permitidos. Espera " + retryAfterSeconds +
+                                " segundos antes de volver a intentar.\"}"
+                );
+                response.getWriter().flush();
                 return;
             }
-            entry.increment();
         }
 
         filterChain.doFilter(request, response);
@@ -60,19 +63,17 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 
     private static class RateLimitEntry {
         private final AtomicInteger count = new AtomicInteger(1);
-        private final long windowStart = System.currentTimeMillis();
+        private volatile long windowStart = System.currentTimeMillis();
 
         boolean isBlocked() {
-            if (System.currentTimeMillis() - windowStart > WINDOW_MS) {
+            long now = System.currentTimeMillis();
+            if (now - windowStart > WINDOW_MS) {
+                windowStart = now;
+                count.set(1);
                 return false;
             }
-            return count.get() > MAX_ATTEMPTS;
-        }
-
-        void increment() {
-            if (System.currentTimeMillis() - windowStart <= WINDOW_MS) {
-                count.incrementAndGet();
-            }
+            int current = count.getAndIncrement();
+            return current > MAX_ATTEMPTS;
         }
     }
 }
