@@ -21,10 +21,12 @@ public class RoleService {
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
 
+    @Transactional(readOnly = true)
     public List<Role> findAll() {
         return roleRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Page<Role> findAllPaged(String search, Pageable pageable) {
         if (search == null || search.isBlank()) {
             return roleRepository.findAll(pageable);
