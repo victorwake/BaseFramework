@@ -4,15 +4,14 @@ import com.example.base_framework.entity.User;
 import com.example.base_framework.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
-import org.jspecify.annotations.NonNull;
-import org.jspecify.annotations.NullMarked;
 
 
 
-@NullMarked
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
@@ -32,7 +31,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                         .map(permission -> permission.getName())
         ).distinct().toList();
 
-        System.out.println("AUTHORITIES: " + authorities);
+        log.debug("Authorities for user {}: {}", email, authorities);
 
         return org.springframework.security.core.userdetails.User.builder()
                 .username(user.getEmail())

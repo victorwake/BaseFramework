@@ -29,10 +29,12 @@ public class UserService {
     private final ModuleRepository moduleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public List<User> findAllUsers() {
         return userRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Page<User> findAllUsersPaged(String search, Pageable pageable) {
         if (search == null || search.isBlank()) {
             return userRepository.findAll(pageable);
@@ -40,9 +42,15 @@ public class UserService {
         return userRepository.findByNameContainingIgnoreCaseOrEmailContainingIgnoreCase(search, search, pageable);
     }
 
-    public User findUserById(Long id) {
-        return userRepository.findById(id)
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return userRepository.findByEmail(email).isPresent();
     }
 
     public User createUser(CreateUserRequest request) {
