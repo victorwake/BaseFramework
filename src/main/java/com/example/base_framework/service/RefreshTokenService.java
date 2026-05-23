@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 @Service
@@ -25,7 +26,7 @@ public class RefreshTokenService {
         var token = RefreshToken.builder()
                 .token(UUID.randomUUID().toString())
                 .user(user)
-                .expiresAt(LocalDateTime.now().plusMillis(refreshExpiration))
+                .expiresAt(LocalDateTime.now().plus(refreshExpiration, ChronoUnit.MILLIS))
                 .build();
 
         return refreshTokenRepository.save(token);
