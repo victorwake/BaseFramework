@@ -4,12 +4,17 @@ import com.example.base_framework.entity.*;
 import com.example.base_framework.entity.Module;
 import com.example.base_framework.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
@@ -17,76 +22,94 @@ public class DataInitializer implements CommandLineRunner {
     private final RoleRepository roleRepository;
     private final ModuleRepository moduleRepository;
     private final PermissionRepository permissionRepository;
+    private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public void run(String... args) {
 
-        // ROLES
-        createRole("ROLE_ADMIN");
-        createRole("ROLE_USER");
-        createRole("ROLE_SUPER_ADMIN");
-
         // MODULES
-        createModule("DASHBOARD");
-        createModule("RISK");
+        Module dashboard = createModule("DASHBOARD");
+        Module risk = createModule("RISK");
 
         // PERMISSIONS
-        createPermission("USER_READ");
-        createPermission("USER_CREATE");
-        createPermission("USER_UPDATE");
-        createPermission("USER_DELETE");
+        createPermission("USER_READ", dashboard);
+        createPermission("USER_CREATE", dashboard);
+        createPermission("USER_UPDATE", dashboard);
+        createPermission("USER_DELETE", dashboard);
 
-        assignPermissionsToAdmin();
+        createPermission("ROLE_READ", risk);
+        createPermission("ROLE_CREATE", risk);
+        createPermission("ROLE_UPDATE", risk);
+        createPermission("ROLE_DELETE", risk);
 
+        createPermission("PERMISSION_READ", risk);
+        createPermission("PERMISSION_CREATE", risk);
+        createPermission("PERMISSION_DELETE", risk);
 
-    }
-    private void createRole(String name) {
+        createPermission("MODULE_READ", risk);
+        createPermission("MODULE_CREATE", risk);
+        createPermission("MODULE_UPDATE", risk);
+        createPermission("MODULE_DELETE", risk);
 
-        if (!roleRepository.existsByName(name)) {
-            roleRepository.save(
-                    Role.builder()
-                            .name(name)
-                            .build()
-            );
-        }
+        // ROLES
+        Role roleUser = createRole("ROLE_USER");
+        Role roleAdmin = createRole("ROLE_ADMIN");
+        Role roleSuperAdmin = createRole("ROLE_SUPER_ADMIN");
 
-    }
+        assignAllPermissions(roleAdmin);
+        assignAllPermissions(roleSuperAdmin);
 
-    private void createModule(String name) {
-
-        if (!moduleRepository.existsByName(name)) {
-            moduleRepository.save(
-                    Module.builder()
-                            .name(name)
-                            .build()
-            );
-        }
-
+        // ADMIN USER
+        createDefaultAdmin(roleAdmin);
     }
 
-    private void createPermission(String name) {
+    private Role createRole(String name) {
+        return roleRepository.findByName(name).orElseGet(() ->
+                roleRepository.save(Role.builder().name(name).build())
+        );
+    }
 
+    private Module createModule(String name) {
+        return moduleRepository.findByName(name).orElseGet(() ->
+                moduleRepository.save(Module.builder().name(name).build())
+        );
+    }
+
+    private void createPermission(String name, Module module) {
         if (!permissionRepository.existsByName(name)) {
             permissionRepository.save(
                     Permission.builder()
                             .name(name)
+                            .module(module)
                             .build()
             );
         }
     }
 
-    private void assignPermissionsToAdmin() {
+    private void assignAllPermissions(Role role) {
+        List<Permission> allPermissions = permissionRepository.findAll();
+        role.setPermissions(new HashSet<>(allPermissions));
+        roleRepository.save(role);
+    }
 
-        Role adminRole = roleRepository.findByName("ROLE_ADMIN").orElse(null);
+    private void createDefaultAdmin(Role adminRole) {
+        String email = "admin@email.com";
 
-        if (adminRole == null) {
+        if (userRepository.findByEmail(email).isPresent()) {
+            log.info("Admin user already exists, skipping creation");
             return;
         }
 
-        List<Permission> permissions = permissionRepository.findAll();
+        User admin = User.builder()
+                .name("Admin")
+                .email(email)
+                .password(passwordEncoder.encode("admin123"))
+                .roles(Set.of(adminRole))
+                .build();
 
-        adminRole.setPermissions(new HashSet<>(permissions));
-
-        roleRepository.save(adminRole);
+        userRepository.save(admin);
+        log.info("Default admin user created: admin@email.com / admin123");
     }
 }
