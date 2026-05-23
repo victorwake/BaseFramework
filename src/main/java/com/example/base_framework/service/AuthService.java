@@ -18,6 +18,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
 
     public AuthResponse login(LoginRequest request) {
 
@@ -29,9 +30,27 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        String token = jwtService.generateToken(user.getEmail());
+        String accessToken = jwtService.generateToken(user.getEmail());
+        String refreshToken = refreshTokenService.createRefreshToken(user).getToken();
 
-        return new AuthResponse(token);
+        return new AuthResponse(accessToken, refreshToken);
+    }
+
+    public AuthResponse refresh(String refreshTokenValue) {
+
+        var refreshToken = refreshTokenService.findByToken(refreshTokenValue);
+
+        if (!refreshToken.isValid()) {
+            throw new RuntimeException("Refresh token inválido o expirado");
+        }
+
+        User user = refreshToken.getUser();
+        String newAccessToken = jwtService.generateToken(user.getEmail());
+        String newRefreshToken = refreshTokenService.createRefreshToken(user).getToken();
+
+        refreshTokenService.revokeToken(refreshTokenValue);
+
+        return new AuthResponse(newAccessToken, newRefreshToken);
     }
 
     public User getCurrentUser(String email) {

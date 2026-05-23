@@ -3,6 +3,7 @@ package com.example.base_framework.controller;
 import com.example.base_framework.dto.AuthResponse;
 import com.example.base_framework.dto.ChangePasswordRequest;
 import com.example.base_framework.dto.LoginRequest;
+import com.example.base_framework.dto.RefreshTokenRequest;
 import com.example.base_framework.entity.User;
 import com.example.base_framework.service.AuthService;
 import jakarta.validation.Valid;
@@ -21,6 +22,11 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.refresh(request.getRefreshToken());
     }
 
     @GetMapping("/me")
